@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Adjudicación CMUDE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="formato-bp">
+
+    <!-- Barra de herramientas interactiva y CRONÓMETRO -->
+    <div id="toolbar">
+        <!-- Selector de Formato de Debate -->
+        <select id="selector-formato" class="btn-color" style="background-color: #2c3e50; color: white;" onchange="cambiarFormato(this.value)">
+            <option value="bp">🏆 BP (4 Bancadas)</option>
+            <option value="altas">⚔️ Altas (2 Bancadas)</option>
+            <option value="masters">👑 Másters (3 Oradores)</option>
+        </select>
+
+        <!-- Panel de Colores -->
+        <button class="btn-color" style="background-color: #34495e; color: white; margin-left: 10px;" onclick="togglePanel('panel-colores')">🎨 Colores</button>
+        <div id="panel-colores" class="panel-ocultable oculto">
+            <button class="btn-color" style="background-color: #3498db; color: white;" onclick="cambiarColor('#3498db')">Azul</button>
+            <button class="btn-color" style="background-color: #27ae60; color: white;" onclick="cambiarColor('#27ae60')">Verde</button>
+            <button class="btn-color" style="background-color: #e74c3c; color: white;" onclick="cambiarColor('#e74c3c')">Rojo (-)</button>
+            <button class="btn-color" style="background-color: #7f8c8d; color: white;" onclick="cambiarColor('#7f8c8d')">Gris (*)</button>
+        </div>
+
+        <!-- Panel de Vistas (Mostrar/Ocultar Cajas) -->
+        <button class="btn-color" style="background-color: #f39c12; color: white; margin-left: 10px;" onclick="togglePanel('panel-vistas')">👁️ Cajas</button>
+        <div id="panel-vistas" class="panel-ocultable oculto">
+            <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('positiva')"> + A favor</label>
+            <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('obs')"> * Obs</label>
+            <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('negativa')"> - En contra</label>
+        </div>
+        
+        <!-- Botones de Tabla SPK, PDF y Limpiar -->
+        <button class="btn-color" style="background-color: #9b59b6; color: white; margin-left: 15px;" onclick="toggleModalSPK()">📊 Escala SPK</button>
+        <button class="btn-color" style="background-color: #16a085; color: white; margin-left: 5px;" onclick="window.print()">🖨️ PDF</button>
+        <button class="btn-color" style="background-color: #c0392b; color: white; margin-left: 5px;" onclick="limpiarTodo()">🗑️ Nueva Ronda</button>
+
+        <!-- Contenedor del Cronómetro alineado a la derecha -->
+        <div class="cronometro-container">
+            <span id="tiempo-display">00:00</span>
+            <button id="btn-timer" class="btn-color" style="background-color: #27ae60; color: white;" onclick="toggleTimer()">▶ Play</button>
+            <button class="btn-color" style="background-color: #e74c3c; color: white;" onclick="resetTimer()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <!-- Sección superior: La Moción -->
+    <header>
+        <h1 contenteditable="true" class="titulo-editable" placeholder="Moción: Escribe aquí la moción..."></h1>
+        <p contenteditable="true" class="info-editable" placeholder="Info / Contexto: Breve descripción de qué va la moción..."></p>
+    </header>
+
+    <main>
+        
+        <!-- Alta de Gobierno -->
+        <div class="bancada" id="bancada-ag">
+            <div class="header-bancada">
+                <h2 style="margin: 0;">Alta de Gobierno (AG)</h2>
+            </div>
+            
+            <div class="flechas-manuales">
+                <span id="flecha-AG-AO" class="flecha-btn" onclick="toggleFlecha('AG', 'AO', this)">➔ Gana a AO</span>
+                <span id="flecha-AG-BG" class="flecha-btn flecha-bajas" onclick="toggleFlecha('AG', 'BG', this)">➔ Gana a BG</span>
+                <span id="flecha-AG-BO" class="flecha-btn flecha-bajas" onclick="toggleFlecha('AG', 'BO', this)">➔ Gana a BO</span>
+            </div>
+            
+            <div class="orador-fila">
+                <strong>PM:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes PM (Azul)..."></div>
+            
+            <div class="orador-fila">
+                <strong>VPM:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes VPM (Azul)..."></div>
+
+            <!-- Fila del 3er Orador (Oculta por defecto) -->
+            <div class="orador-fila tercer-orador">
+                <strong>3er Orador:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes tercer-orador" contenteditable="true" placeholder="Apuntes 3er Orador (Azul)..."></div>
+            
+            <strong>Resumen del caso:</strong>
+            <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
+
+            <div class="cajas-evaluacion">
+                <div class="caja-eva eva-positiva" contenteditable="true" placeholder="+ (A favor)"></div>
+                <div class="caja-eva eva-obs" contenteditable="true" placeholder="* (Obs)"></div>
+                <div class="caja-eva eva-negativa" contenteditable="true" placeholder="- (En contra)"></div>
+            </div>
+        </div>
+
+        <!-- Alta de Oposición -->
+        <div class="bancada" id="bancada-ao">
+            <div class="header-bancada">
+                <h2 style="margin: 0;">Alta de Oposición (AO)</h2>
+            </div>
+
+            <div class="flechas-manuales">
+                <span id="flecha-AO-AG" class="flecha-btn" onclick="toggleFlecha('AO', 'AG', this)">➔ Gana a AG</span>
+                <span id="flecha-AO-BG" class="flecha-btn flecha-bajas" onclick="toggleFlecha('AO', 'BG', this)">➔ Gana a BG</span>
+                <span id="flecha-AO-BO" class="flecha-btn flecha-bajas" onclick="toggleFlecha('AO', 'BO', this)">➔ Gana a BO</span>
+            </div>
+            
+            <div class="orador-fila">
+                <strong>LO:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes LO (Azul)..."></div>
+            
+            <div class="orador-fila">
+                <strong>VLO:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes VLO (Azul)..."></div>
+
+            <!-- Fila del 3er Orador (Oculta por defecto) -->
+            <div class="orador-fila tercer-orador">
+                <strong>3er Orador:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes tercer-orador" contenteditable="true" placeholder="Apuntes 3er Orador (Azul)..."></div>
+            
+            <strong>Resumen del caso:</strong>
+            <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
+
+            <div class="cajas-evaluacion">
+                <div class="caja-eva eva-positiva" contenteditable="true" placeholder="+ (A favor)"></div>
+                <div class="caja-eva eva-obs" contenteditable="true" placeholder="* (Obs)"></div>
+                <div class="caja-eva eva-negativa" contenteditable="true" placeholder="- (En contra)"></div>
+            </div>
+        </div>
+
+        <!-- Baja de Gobierno -->
+        <div class="bancada" id="bancada-bg">
+            <div class="header-bancada">
+                <h2 style="margin: 0;">Baja de Gobierno (BG)</h2>
+            </div>
+
+            <div class="flechas-manuales">
+                <span id="flecha-BG-AG" class="flecha-btn" onclick="toggleFlecha('BG', 'AG', this)">➔ Gana a AG</span>
+                <span id="flecha-BG-AO" class="flecha-btn" onclick="toggleFlecha('BG', 'AO', this)">➔ Gana a AO</span>
+                <span id="flecha-BG-BO" class="flecha-btn" onclick="toggleFlecha('BG', 'BO', this)">➔ Gana a BO</span>
+            </div>
+            
+            <div class="orador-fila">
+                <strong>EG:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes EG (Azul)..."></div>
+            
+            <div class="orador-fila">
+                <strong>LátG:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes LátG (Azul)..."></div>
+            
+            <strong>Resumen del caso:</strong>
+            <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
+
+            <div class="cajas-evaluacion">
+                <div class="caja-eva eva-positiva" contenteditable="true" placeholder="+ (A favor)"></div>
+                <div class="caja-eva eva-obs" contenteditable="true" placeholder="* (Obs)"></div>
+                <div class="caja-eva eva-negativa" contenteditable="true" placeholder="- (En contra)"></div>
+            </div>
+        </div>
+
+        <!-- Baja de Oposición -->
+        <div class="bancada" id="bancada-bo">
+            <div class="header-bancada">
+                <h2 style="margin: 0;">Baja de Oposición (BO)</h2>
+            </div>
+
+            <div class="flechas-manuales">
+                <span id="flecha-BO-AG" class="flecha-btn" onclick="toggleFlecha('BO', 'AG', this)">➔ Gana a AG</span>
+                <span id="flecha-BO-AO" class="flecha-btn" onclick="toggleFlecha('BO', 'AO', this)">➔ Gana a AO</span>
+                <span id="flecha-BO-BG" class="flecha-btn" onclick="toggleFlecha('BO', 'BG', this)">➔ Gana a BG</span>
+            </div>
+            
+            <div class="orador-fila">
+                <strong>EO:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes EO (Azul)..."></div>
+            
+            <div class="orador-fila">
+                <strong>LátO:</strong>
+                <span class="nombre-orador" contenteditable="true" placeholder="Nombre..."></span>
+                <span class="spk-orador" contenteditable="true" placeholder="Pts"></span>
+                <div class="poi-counter">
+                    <span style="font-size: 11px; color: #7f8c8d;">POI:</span>
+                    <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
+                </div>
+            </div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes LátO (Azul)..."></div>
+            
+            <strong>Resumen del caso:</strong>
+            <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
+
+            <div class="cajas-evaluacion">
+                <div class="caja-eva eva-positiva" contenteditable="true" placeholder="+ (A favor)"></div>
+                <div class="caja-eva eva-obs" contenteditable="true" placeholder="* (Obs)"></div>
+                <div class="caja-eva eva-negativa" contenteditable="true" placeholder="- (En contra)"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sección de Deliberación -->
+    <section id="seccion-deliberacion" style="margin-bottom: 20px;">
+        <div style="text-align: center;">
+            <button class="btn-color" style="background-color: #f39c12; color: white; padding: 12px 24px; font-size: 16px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" onclick="generarMatriz()">
+                Resumir Matriz de Deliberación
+            </button>
+        </div>
+        <div id="matriz-deliberacion" style="display: none;"></div>
+    </section>
+
+    <!-- Sección final: El Call (Simple y Rápido) -->
+    <footer>
+        <h2 style="margin-top: 0; color: #2c3e50; text-align: center;">Posiciones Finales</h2>
+        
+        <p style="text-align: center; color: #7f8c8d; font-weight: bold; margin-bottom: 5px;">Mi Call:</p>
+        <div id="mi-call-texto" class="apuntes call-box" contenteditable="true" style="text-align: center; font-size: 24px; color: #e67e22; letter-spacing: 2px;">
+            &gt;&gt;&gt;
+        </div>
+        
+        <p style="color: #34495e; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 20px;"><strong>Call propuesto por otros jueces:</strong></p>
+        <div id="otros-calls-texto" class="apuntes call-box" contenteditable="true" style="line-height: 1.8;">
+            Principal: &gt;&gt;&gt;<br>
+            Panelista 1: &gt;&gt;&gt;<br>
+            Panelista 2: &gt;&gt;&gt;<br>
+            Trainee: &gt;&gt;&gt;
+        </div>
+    </footer>
+
+    <!-- MODAL DE LA TABLA SPK -->
+    <div id="modal-spk" class="modal-oculto">
+        <div class="modal-contenido" style="max-height: 90vh; overflow-y: auto;">
+            <span class="cerrar-modal" onclick="toggleModalSPK()">&times;</span>
+            <h2 style="margin-top: 0; color: #2c3e50; text-align: center;">Escala de Puntos de Orador (SPK)</h2>
+            <table class="tabla-spk">
+                <tr><th>Rango</th><th>Descripción Estándar CMUDE</th></tr>
+                <tr><td><strong>95 - 100</strong></td><td>Probablemente uno de los mejores discursos en la historia. Argumentos perfectos y totalmente convincentes.</td></tr>
+                <tr><td><strong>92 - 94</strong></td><td>Increíble. Se involucra de forma muy efectiva, sin errores ni defectos significativos.</td></tr>
+                <tr><td><strong>89 - 91</strong></td><td>Brillante. Argumentos bien explicados y ejemplificados. Solo hay problemas menores.</td></tr>
+                <tr><td><strong>86 - 88</strong></td><td>Muy convincente. No presenta fallas lógicas, requiere respuestas sofisticadas para ser vencido.</td></tr>
+                <tr><td><strong>83 - 85</strong></td><td>Sólido. Explicaciones muy sólidas con fallas muy limitadas.</td></tr>
+                <tr><td><strong>79 - 82</strong></td><td>Bien construido. Sin fallas evidentes, pero vulnerable a buenas respuestas.</td></tr>
+                <tr><td><strong>76 - 78</strong></td><td>Relevante. Claro de seguir, aunque ocasionalmente simplista o con fallas en las explicaciones.</td></tr>
+                <tr style="background-color: #d4efdf;"><td><strong>73 - 75</strong></td><td><strong>PROMEDIO.</strong> Lógico pero tiende a ser simplista, con algunas fallas lógicas y vulnerable.</td></tr>
+                <tr><td><strong>70 - 72</strong></td><td>Deficiente. Explicaciones con fallas lógicas evidentes y/o significativas. A veces difícil de seguir.</td></tr>
+                <tr><td><strong>67 - 69</strong></td><td>Pobre. Fallas lógicas significativas. Generalmente es difícil de seguir y dar crédito.</td></tr>
+                <tr><td><strong>64 - 66</strong></td><td>Muy pobre. Poca explicación, frecuentemente poco claro o confuso.</td></tr>
+                <tr><td><strong>61 - 63</strong></td><td>Incomprensible. Afirmaciones con fallas muy significativas, muy difícil de seguir.</td></tr>
+                <tr><td><strong>58 - 60</strong></td><td>Sin análisis. Afirmaciones no son construidas como argumentos, sumamente vagas.</td></tr>
+                <tr><td><strong>55 - 57</strong></td><td>Irrelevante. Un par de afirmaciones casi nunca relevantes, son más observaciones.</td></tr>
+                <tr><td><strong>50 - 54</strong></td><td>Inaceptable. El contenido no presenta nada que sugiera análisis. Imposible seguirlo.</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
