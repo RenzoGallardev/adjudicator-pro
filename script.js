@@ -1,4 +1,43 @@
 // =========================================
+// LÓGICA DE SCROLL PREMIUM PARA LA BARRA
+// =========================================
+function desplazarToolbar(direccion) {
+    const container = document.getElementById('toolbar-content');
+    const scrollAmount = 350; 
+    container.scrollBy({ left: direccion * scrollAmount, behavior: 'smooth' });
+}
+
+function actualizarFlechasScroll() {
+    const container = document.getElementById('toolbar-content');
+    const btnLeft = document.getElementById('scroll-left');
+    const btnRight = document.getElementById('scroll-right');
+    
+    if (!container || !btnLeft || !btnRight) return;
+
+    if (container.scrollLeft > 10) {
+        btnLeft.classList.remove('oculto');
+    } else {
+        btnLeft.classList.add('oculto');
+    }
+
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    if (container.scrollLeft >= maxScroll - 10) {
+        btnRight.classList.add('oculto');
+    } else {
+        btnRight.classList.remove('oculto');
+    }
+}
+
+window.addEventListener('load', () => {
+    const container = document.getElementById('toolbar-content');
+    if (container) {
+        container.addEventListener('scroll', actualizarFlechasScroll);
+        window.addEventListener('resize', actualizarFlechasScroll);
+        setTimeout(actualizarFlechasScroll, 300); 
+    }
+});
+
+// =========================================
 // REGISTRO DE SERVICE WORKER (PWA - OFFLINE)
 // =========================================
 if ('serviceWorker' in navigator) {
@@ -167,7 +206,6 @@ function toggleTimer() {
         timerInterval = setInterval(() => {
             segundos++;
             actualizarPantallaTimer();
-            // Suena solo si estamos en modo orador
             if (modo === 'orador') {
                 if (segundos === 60) tocarCampana(1);       
                 if (segundos === 360) tocarCampana(1);      
@@ -242,7 +280,6 @@ function actualizarPosicionesRanking() {
     });
 }
 
-// VALIDADOR INTELIGENTE DE CHOQUES
 function validarCall() {
     const items = document.querySelectorAll('.item-ranking');
     const ranking = Array.from(items).map(item => item.getAttribute('data-equipo'));
@@ -251,13 +288,12 @@ function validarCall() {
 
     flechasActivas.forEach(btn => {
         const partes = btn.id.split('-');
-        const ganador = partes[1]; // Quien dispara la flecha
-        const perdedor = partes[2]; // Quien recibe
+        const ganador = partes[1]; 
+        const perdedor = partes[2]; 
 
         const indiceGanador = ranking.indexOf(ganador);
         const indicePerdedor = ranking.indexOf(perdedor);
 
-        // Si el ganador está en una posición inferior (mayor índice) en el ranking
         if(indiceGanador > indicePerdedor) { 
             mostrarToast(`⚠️ Choque: Marcaste que ${ganador} gana a ${perdedor}, pero ${perdedor} está más arriba.`, 'error');
             hayChoques = true;
@@ -366,7 +402,6 @@ function guardarDatos() {
     document.querySelectorAll('.poi-valor').forEach((elemento, index) => { backup['poi_' + index] = elemento.innerText; });
     backup['formato'] = document.getElementById('selector-formato').value;
     
-    // Guarda el orden del ranking
     const rankingList = document.getElementById('lista-ranking');
     if(rankingList) backup['ranking'] = rankingList.innerHTML;
     
@@ -392,7 +427,6 @@ function cargarDatos() {
             cambiarFormato(backup['formato']);
         }
         
-        // Restaura el orden del ranking
         if (backup['ranking']) {
             const rankingList = document.getElementById('lista-ranking');
             if(rankingList) rankingList.innerHTML = backup['ranking'];
@@ -402,7 +436,7 @@ function cargarDatos() {
             setTimeout(() => mostrarToast('♻️ Notas anteriores restauradas de forma automática', 'info'), 500);
         }
     }
-    inicializarDragAndDrop(); // Activa el arrastre
+    inicializarDragAndDrop(); 
 }
 
 function ejecutarLimpieza() {
@@ -417,7 +451,6 @@ function ejecutarLimpieza() {
 window.onload = cargarDatos;
 let intervaloGuardado = setInterval(guardarDatos, 2000);
 
-
 // =========================================
 // LÓGICA DE INSTALACIÓN PWA (BOTÓN PERSONALIZADO)
 // =========================================
@@ -425,12 +458,8 @@ let deferredPrompt;
 const btnInstalar = document.getElementById('btn-instalar');
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Previene que Chrome muestre su propia alerta pequeña
     e.preventDefault();
-    // Guarda el evento para poder dispararlo al hacer clic
     deferredPrompt = e;
-    
-    // Muestra nuestro botón premium en la barra
     if (btnInstalar) {
         btnInstalar.classList.remove('oculto');
     }
@@ -439,17 +468,12 @@ window.addEventListener('beforeinstallprompt', (e) => {
 if (btnInstalar) {
     btnInstalar.addEventListener('click', async () => {
         if (deferredPrompt) {
-            // Lanza la ventana nativa de instalación del sistema operativo
             deferredPrompt.prompt();
-            
-            // Espera a que el usuario decida si instalar o cancelar
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
                 console.log('El usuario instaló la App');
-                // Ocultamos el botón porque ya está instalada
                 btnInstalar.classList.add('oculto');
             }
-            // Limpiamos la variable
             deferredPrompt = null;
         }
     });

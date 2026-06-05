@@ -3,54 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>Adjudicación CMUDE</title>
-    <!-- Vincula el manifest de la PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
     <script src="script.js"></script>
 </head>
 <body class="formato-bp">
 
-    <div id="toolbar">
-        <img src="logo.png" alt="Adjudicator-pro Logo" class="logo-app" onclick="location.reload()" title="Volver al inicio">
-
-        <select id="selector-formato" class="btn-color" style="background-color: #2c3e50; color: white;" onchange="cambiarFormato(this.value)">
-            <option value="bp">🏆 BP (4 Bancadas)</option>
-            <option value="altas">⚔️ Altas (2 Bancadas)</option>
-            <option value="masters">👑 Másters (3 Oradores)</option>
-        </select>
-
-        <button class="btn-color" style="background-color: #8e44ad; color: white; margin-left: 10px;" onclick="toggleTema()">🌓 Tema</button>
-
-        <div class="leyenda-atajos">
-            <span><strong style="color: #27ae60; font-size: 16px;">+</strong> A favor</span>
-            <span><strong style="color: #e74c3c; font-size: 16px;">-</strong> En contra</span>
-            <span><strong style="color: #7f8c8d; font-size: 16px;">*</strong> Obs</span>
-        </div>
-
-        <button class="btn-color" style="background-color: #f39c12; color: white; margin-left: auto;" onclick="togglePanel('panel-vistas')">👁️ Cajas</button>
-        <div id="panel-vistas" class="panel-ocultable oculto">
-            <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('positiva')"> + A favor</label>
-            <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('obs')"> * Obs</label>
-            <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('negativa')"> - En contra</label>
-        </div>
+    <div id="toolbar-container">
+        <button id="scroll-left" class="scroll-btn oculto" onclick="desplazarToolbar(-1)">❮</button>
         
-        <button class="btn-color" style="background-color: #9b59b6; color: white; margin-left: 15px;" onclick="toggleModalSPK()">📊 Escala SPK</button>
-        <button class="btn-color" style="background-color: #16a085; color: white; margin-left: 5px;" onclick="window.print()">🖨️ PDF</button>
-        <button class="btn-color" style="background-color: #c0392b; color: white; margin-left: 5px;" onclick="abrirModalLimpieza()">🗑️ Nueva Ronda</button>
-        
-        <!-- NUEVO BOTÓN DE INSTALACIÓN (Oculto por defecto) -->
-        <button id="btn-instalar" class="btn-color oculto" style="background-color: #2980b9; color: white; margin-left: 5px;">📲 Instalar App</button>
+        <div id="toolbar-content">
+            <img src="logo.png" alt="Adjudicator-pro Logo" class="logo-app" onclick="location.reload()" title="Volver al inicio">
 
-        <!-- Cronómetro actualizado con selector de modo -->
-        <div class="cronometro-container">
-            <select id="modo-timer" class="btn-color" style="background-color: #34495e; color: white;" onchange="cambiarModoTimer()">
-                <option value="orador">🎙️ Orador</option>
-                <option value="deliberacion">⏱️ Deliberación</option>
+            <select id="selector-formato" class="btn-color" style="background-color: #2c3e50; color: white;" onchange="cambiarFormato(this.value)">
+                <option value="bp">🏆 BP (4 Bancadas)</option>
+                <option value="altas">⚔️ Altas (2 Bancadas)</option>
+                <option value="masters">👑 Másters (3 Oradores)</option>
             </select>
-            <span id="tiempo-display">00:00</span>
-            <button id="btn-timer" class="btn-color" style="background-color: #27ae60; color: white;" onclick="toggleTimer()">▶ Play</button>
-            <button class="btn-color" style="background-color: #e74c3c; color: white;" onclick="resetTimer()">🔄 Reset</button>
+
+            <button class="btn-color" style="background-color: #8e44ad; color: white; margin-left: 10px;" onclick="toggleTema()">🌓 Tema</button>
+
+            <div class="leyenda-atajos">
+                <span><strong style="color: #27ae60; font-size: 16px;">+</strong> A favor</span>
+                <span><strong style="color: #e74c3c; font-size: 16px;">-</strong> En contra</span>
+                <span><strong style="color: #7f8c8d; font-size: 16px;">*</strong> Obs</span>
+            </div>
+
+            <button class="btn-color" style="background-color: #f39c12; color: white; margin-left: auto;" onclick="togglePanel('panel-vistas')">👁️ Cajas</button>
+            <div id="panel-vistas" class="panel-ocultable oculto">
+                <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('positiva')"> + A favor</label>
+                <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('obs')"> * Obs</label>
+                <label class="toggle-caja"><input type="checkbox" checked onchange="toggleCaja('negativa')"> - En contra</label>
+            </div>
+            
+            <button class="btn-color" style="background-color: #9b59b6; color: white; margin-left: 15px;" onclick="toggleModalSPK()">📊 Escala SPK</button>
+            <button class="btn-color" style="background-color: #16a085; color: white; margin-left: 5px;" onclick="window.print()">🖨️ PDF</button>
+            <button class="btn-color" style="background-color: #c0392b; color: white; margin-left: 5px;" onclick="abrirModalLimpieza()">🗑️ Nueva Ronda</button>
+            
+            <button id="btn-instalar" class="btn-color oculto" style="background-color: #2980b9; color: white; margin-left: 5px;">📲 Instalar App</button>
+
+            <div class="cronometro-container">
+                <select id="modo-timer" class="btn-color" style="background-color: #34495e; color: white;" onchange="cambiarModoTimer()">
+                    <option value="orador">🎙️ Orador</option>
+                    <option value="deliberacion">⏱️ Deliberación</option>
+                </select>
+                <span id="tiempo-display">00:00</span>
+                <button id="btn-timer" class="btn-color" style="background-color: #27ae60; color: white;" onclick="toggleTimer()">▶ Play</button>
+                <button class="btn-color" style="background-color: #e74c3c; color: white;" onclick="resetTimer()">🔄 Reset</button>
+            </div>
         </div>
+
+        <button id="scroll-right" class="scroll-btn" onclick="desplazarToolbar(1)">❯</button>
     </div>
 
     <header>
@@ -60,7 +63,6 @@
 
     <main>
         
-        <!-- Alta de Gobierno -->
         <div class="bancada" id="bancada-ag">
             <div class="header-bancada">
                 <h2 style="margin: 0;">Alta de Gobierno (AG)</h2>
@@ -115,7 +117,6 @@
             </div>
         </div>
 
-        <!-- Alta de Oposición -->
         <div class="bancada" id="bancada-ao">
             <div class="header-bancada">
                 <h2 style="margin: 0;">Alta de Oposición (AO)</h2>
@@ -170,7 +171,6 @@
             </div>
         </div>
 
-        <!-- Baja de Gobierno -->
         <div class="bancada" id="bancada-bg">
             <div class="header-bancada">
                 <h2 style="margin: 0;">Baja de Gobierno (BG)</h2>
@@ -214,7 +214,6 @@
             </div>
         </div>
 
-        <!-- Baja de Oposición -->
         <div class="bancada" id="bancada-bo">
             <div class="header-bancada">
                 <h2 style="margin: 0;">Baja de Oposición (BO)</h2>
@@ -272,7 +271,6 @@
     <footer>
         <h2 style="margin-top: 0; color: var(--text-main); text-align: center;">Posiciones Finales</h2>
         
-        <!-- NUEVO DRAG AND DROP RANKING -->
         <p style="text-align: center; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">Mi Call (Arrastra para ordenar):</p>
         <div id="ranking-container" style="max-width: 450px; margin: 0 auto;">
             <ul id="lista-ranking">
@@ -293,7 +291,6 @@
         </div>
     </footer>
 
-    <!-- MODALES ... (Sin cambios aquí) -->
     <div id="modal-spk" class="modal-oculto">
         <div class="modal-contenido" style="max-height: 90vh; overflow-y: auto;">
             <span class="cerrar-modal" onclick="toggleModalSPK()">&times;</span>
@@ -336,7 +333,7 @@
     </div>
 
     <div id="toast-container"></div>
-<!-- SECCIÓN DE CRÉDITOS Y FEEDBACK -->
+    
     <div class="creditos-footer">
         <p>🚀 <strong>Adjudicator-pro (Demo v1.0)</strong> | Desarrollado por <strong>Renzo Gallardo</strong>.</p>
         <p class="nota-feedback">Esta herramienta está en mejora constante. ¡Las sugerencias y críticas son bienvenidas!</p>
