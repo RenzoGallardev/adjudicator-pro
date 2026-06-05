@@ -1,5 +1,5 @@
 // =========================================
-// LÓGICA DE SCROLL PREMIUM PARA LA BARRA
+// LÓGICA DE SCROLL PREMIUM (ANTI RACE-CONDITION)
 // =========================================
 function desplazarToolbar(direccion) {
     const container = document.getElementById('toolbar-content');
@@ -14,26 +14,40 @@ function actualizarFlechasScroll() {
     
     if (!container || !btnLeft || !btnRight) return;
 
+    // Control flecha izquierda
     if (container.scrollLeft > 10) {
         btnLeft.classList.remove('oculto');
     } else {
         btnLeft.classList.add('oculto');
     }
 
+    // Control flecha derecha
     const maxScroll = container.scrollWidth - container.clientWidth;
-    if (container.scrollLeft >= maxScroll - 10) {
+    if (container.scrollLeft >= maxScroll - 10 && maxScroll > 0) {
         btnRight.classList.add('oculto');
-    } else {
+    } else if (maxScroll > 0) {
         btnRight.classList.remove('oculto');
+    } else {
+        btnRight.classList.add('oculto');
     }
 }
 
+// Observador inteligente que vigila cambios de tamaño en tiempo real
 window.addEventListener('load', () => {
     const container = document.getElementById('toolbar-content');
     if (container) {
         container.addEventListener('scroll', actualizarFlechasScroll);
-        window.addEventListener('resize', actualizarFlechasScroll);
-        setTimeout(actualizarFlechasScroll, 300); 
+        
+        // El ResizeObserver evita el bug al recargar la página
+        const observer = new ResizeObserver(() => {
+            actualizarFlechasScroll();
+        });
+        observer.observe(container);
+        
+        // Empujones de seguridad en caso de que las fuentes tarden en cargar
+        setTimeout(actualizarFlechasScroll, 100);
+        setTimeout(actualizarFlechasScroll, 500);
+        setTimeout(actualizarFlechasScroll, 1500);
     }
 });
 
