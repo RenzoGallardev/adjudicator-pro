@@ -263,13 +263,24 @@ function cargarDatos() {
 
 function limpiarTodo() {
     if(confirm("⚠️ ¿Estás seguro de que deseas limpiar todo? Esto borrará todas las notas de la ronda y NO se puede deshacer.")) {
+        // 1. Apagamos el autoguardado temporalmente para que no reviva los datos
+        clearInterval(intervaloGuardado);
+        
+        // 2. Eliminamos el archivo de respaldo
         localStorage.removeItem('cmude_backup');
-        location.reload(); // Recarga la página limpia
+        
+        // 3. Vaciamos la pantalla al instante por seguridad
+        document.querySelectorAll('[contenteditable="true"]').forEach(el => el.innerHTML = '');
+        document.querySelectorAll('.flecha-btn').forEach(el => el.classList.remove('activa'));
+        document.querySelectorAll('.poi-valor').forEach(el => el.innerText = '0');
+        
+        // 4. Hacemos un reinicio limpio de la página
+        window.location.href = window.location.pathname; 
     }
 }
 
 // Carga los datos apenas abres la página
 window.onload = cargarDatos;
 
-// Guarda los datos automáticamente en silencio cada 2 segundos
-setInterval(guardarDatos, 2000);
+// Guardamos el intervalo en una variable para poder detenerlo cuando limpiemos
+let intervaloGuardado = setInterval(guardarDatos, 2000);
