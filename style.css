@@ -73,6 +73,25 @@ body {
     box-sizing: border-box;
     border-bottom: 1px solid var(--border-color);
     transition: background-color 0.3s ease;
+    
+    /* LA MAGIA ANTI-APLASTAMIENTO */
+    overflow-x: auto; /* Permite deslizar hacia los lados */
+    flex-wrap: nowrap; /* Prohíbe que se salten de línea */
+    -webkit-overflow-scrolling: touch; /* Scroll suave en pantallas táctiles */
+}
+
+/* Ocultamos la barra de scroll visual para que se vea como app nativa */
+#toolbar::-webkit-scrollbar {
+    display: none;
+}
+#toolbar {
+    -ms-overflow-style: none;  /* IE y Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Obligamos a los botones a no encogerse nunca */
+#toolbar > * {
+    flex-shrink: 0;
 }
 
 .logo-app { height: 50px; width: auto; margin-right: 15px; cursor: pointer; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.3s ease; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
@@ -269,6 +288,26 @@ footer { background-color: var(--bg-card); padding: 30px; border-radius: 8px; bo
     border-color: #3498db;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+}
+
+/* =========================================
+   DISEÑO RESPONSIVO (PANTALLAS PEQUEÑAS)
+   ========================================= */
+@media (max-width: 900px) {
+    /* Pasamos de 2 columnas a 1 columna */
+    main {
+        grid-template-columns: 1fr;
+    }
+    
+    /* La matriz de deliberación también pasa a 1 columna */
+    #matriz-deliberacion {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Achicamos ligeramente el logo para ganar espacio */
+    .logo-app {
+        height: 40px;
+    }
 }
 
 /* Ocultar los créditos al exportar a PDF */
