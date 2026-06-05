@@ -78,14 +78,18 @@ body {
 #toolbar-content {
     display: flex; align-items: center; gap: 12px;
     overflow-x: auto; scroll-behavior: smooth;
-    flex-wrap: nowrap; width: 100%; height: 100%; padding: 0 15px;
+    flex-wrap: nowrap !important; width: 100%; height: 100%; padding: 0 15px;
     -ms-overflow-style: none; scrollbar-width: none; 
 }
 #toolbar-content::-webkit-scrollbar { display: none; }
 
+/* EL ESCUDO ANTI-APLASTAMIENTO DEFINITIVO */
+#toolbar-content * {
+    white-space: nowrap !important;
+}
+
 #toolbar-content > * {
     flex-shrink: 0 !important;
-    white-space: nowrap !important;
 }
 
 .scroll-btn {
@@ -106,7 +110,6 @@ body {
 [data-theme="dark"] .logo-app { filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
 
 .leyenda-atajos { display: flex; gap: 15px; margin-left: 10px; padding: 6px 15px; background: var(--bg-card); border-radius: 20px; border: 1px solid var(--border-color); font-size: 13px; font-weight: 500; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); color: var(--text-main); }
-.leyenda-atajos span, .toggle-caja { white-space: nowrap; }
 
 select#selector-formato, select#modo-timer { font-weight: bold; border-radius: 4px; padding: 5px 10px; border: none; outline: none; cursor: pointer; }
 .panel-ocultable { display: flex; align-items: center; gap: 10px; margin-left: 5px; transition: all 0.3s ease; overflow: hidden; }
