@@ -14,14 +14,12 @@ function actualizarFlechasScroll() {
     
     if (!container || !btnLeft || !btnRight) return;
 
-    // Control flecha izquierda
     if (container.scrollLeft > 10) {
         btnLeft.classList.remove('oculto');
     } else {
         btnLeft.classList.add('oculto');
     }
 
-    // Control flecha derecha
     const maxScroll = container.scrollWidth - container.clientWidth;
     if (container.scrollLeft >= maxScroll - 10 && maxScroll > 0) {
         btnRight.classList.add('oculto');
@@ -32,19 +30,16 @@ function actualizarFlechasScroll() {
     }
 }
 
-// Observador inteligente que vigila cambios de tamaño en tiempo real
 window.addEventListener('load', () => {
     const container = document.getElementById('toolbar-content');
     if (container) {
         container.addEventListener('scroll', actualizarFlechasScroll);
         
-        // El ResizeObserver evita el bug al recargar la página
         const observer = new ResizeObserver(() => {
             actualizarFlechasScroll();
         });
         observer.observe(container);
         
-        // Empujones de seguridad en caso de que las fuentes tarden en cargar
         setTimeout(actualizarFlechasScroll, 100);
         setTimeout(actualizarFlechasScroll, 500);
         setTimeout(actualizarFlechasScroll, 1500);
@@ -172,7 +167,12 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function cambiarModoTimer() {
     resetTimer();
     const modo = document.getElementById('modo-timer').value;
-    mostrarToast(`⏱️ Modo cambiado a: ${modo === 'orador' ? 'Orador' : 'Deliberación silenciosa'}`, 'info');
+    let modoTexto = '';
+    if (modo === 'orador') modoTexto = 'Orador (7:15m)';
+    else if (modo === 'deliberacion') modoTexto = 'Deliberación (20m)';
+    else if (modo === 'feedback') modoTexto = 'Feedback (15m)';
+    
+    mostrarToast(`⏱️ Modo cambiado a: ${modoTexto}`, 'info');
 }
 
 function tocarCampana(veces) {
@@ -225,6 +225,8 @@ function toggleTimer() {
                 if (segundos === 360) tocarCampana(1);      
                 if (segundos === 420) tocarCampana(2);      
                 if (segundos === 435) tocarCampana(4); 
+            } else if (modo === 'feedback') {
+                if (segundos === 900) tocarCampana(3); // Suena 3 veces a los 15 minutos
             }
         }, 1000);
         btn.innerHTML = "⏸ Pause";
@@ -320,7 +322,7 @@ function validarCall() {
 }
 
 // =========================================
-// MATRIZ DE DELIBERACIÓN
+// MATRIZ DE DELIBERACIÓN Y SPK
 // =========================================
 function generarMatriz() {
     const bancadas = document.querySelectorAll('.bancada');
@@ -336,6 +338,26 @@ function generarMatriz() {
     
     bancadas.forEach((bancada, index) => {
         if (window.getComputedStyle(bancada).display === 'none') return;
+        
+        // SUMATORIA INTELIGENTE DE SPK
+        let totalSPK = 0;
+        const spkInputs = bancada.querySelectorAll('.spk-orador');
+        spkInputs.forEach(input => {
+            const fila = input.closest('.orador-fila');
+            // Solo suma si la fila del orador está visible (para omitir 3er orador si no es Másters)
+            if (window.getComputedStyle(fila).display !== 'none') {
+                const val = parseInt(input.innerText.trim());
+                if (!isNaN(val)) {
+                    totalSPK += val;
+                }
+            }
+        });
+
+        // Etiqueta visual para el total de SPK
+        const totalSPKHtml = totalSPK > 0 
+            ? `<span style="float: right; background-color: #8e44ad; color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; box-shadow: var(--shadow-sm);">⭐ SPK Total: ${totalSPK}</span>` 
+            : '';
+
         const resumen = bancada.querySelector('.resumen-verde').innerHTML.trim();
         const pos = bancada.querySelector('.eva-positiva').innerHTML.trim();
         const obs = bancada.querySelector('.eva-obs').innerHTML.trim();
@@ -362,7 +384,7 @@ function generarMatriz() {
         
         const cuadro = document.createElement('div');
         cuadro.className = 'cuadro-matriz matriz-animada';
-        cuadro.innerHTML = `<h3>${nombresBancadas[index]}</h3>${flechasHTML}${seccionesHTML}`;
+        cuadro.innerHTML = `<h3 style="overflow: hidden;">${nombresBancadas[index]} ${totalSPKHtml}</h3>${flechasHTML}${seccionesHTML}`;
         contenedorMatriz.appendChild(cuadro);
     });
     
