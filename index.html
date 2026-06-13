@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Adjudicación CMUDE</title>
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js"></script>
 </head>
@@ -24,9 +25,12 @@
             <button class="btn-color" style="background-color: #8e44ad; color: white; margin-left: 10px;" onclick="toggleTema()">🌓 Tema</button>
 
             <div class="leyenda-atajos">
-                <span><strong style="color: #27ae60; font-size: 16px;">+</strong> A favor</span>
-                <span><strong style="color: #e74c3c; font-size: 16px;">-</strong> En contra</span>
-                <span><strong style="color: #7f8c8d; font-size: 16px;">*</strong> Obs</span>
+                <span class="punto-ver"></span>
+                <span class="label">A favor</span>
+                <span class="punto-roj"></span>
+                <span class="label">En contra</span>
+                <span class="punto-gri"></span>
+                <span class="label">Obs</span>
             </div>
 
             <button class="btn-color" style="background-color: #f39c12; color: white; margin-left: auto;" onclick="togglePanel('panel-vistas')">👁️ Cajas</button>
@@ -40,8 +44,6 @@
             <button class="btn-color" style="background-color: #16a085; color: white; margin-left: 5px;" onclick="window.print()">🖨️ PDF</button>
             <button class="btn-color" style="background-color: #c0392b; color: white; margin-left: 5px;" onclick="abrirModalLimpieza()">🗑️ Nueva Ronda</button>
             
-            <button id="btn-instalar" class="btn-color oculto" style="background-color: #2980b9; color: white; margin-left: 5px;">📲 Instalar App</button>
-
             <div class="cronometro-container">
                 <select id="modo-timer" class="btn-color" style="background-color: #34495e; color: white;" onchange="cambiarModoTimer()">
                     <option value="orador">🎙️ Orador (7:15m)</option>
@@ -84,7 +86,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes PM (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes PM..."></div>
             
             <div class="orador-fila">
                 <strong>VPM:</strong>
@@ -95,7 +97,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes VPM (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes VPM..."></div>
 
             <div class="orador-fila tercer-orador">
                 <strong>3er Orador:</strong>
@@ -106,7 +108,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes tercer-orador" contenteditable="true" placeholder="Apuntes 3er Orador (Azul)..."></div>
+            <div class="apuntes tercer-orador" contenteditable="true" placeholder="Apuntes 3er Orador..."></div>
             
             <strong>Resumen del caso:</strong>
             <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
@@ -138,7 +140,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes LO (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes LO..."></div>
             
             <div class="orador-fila">
                 <strong>VLO:</strong>
@@ -149,7 +151,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes VLO (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes VLO..."></div>
 
             <div class="orador-fila tercer-orador">
                 <strong>3er Orador:</strong>
@@ -160,7 +162,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes tercer-orador" contenteditable="true" placeholder="Apuntes 3er Orador (Azul)..."></div>
+            <div class="apuntes tercer-orador" contenteditable="true" placeholder="Apuntes 3er Orador..."></div>
             
             <strong>Resumen del caso:</strong>
             <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
@@ -192,7 +194,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes EG (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes EG..."></div>
             
             <div class="orador-fila">
                 <strong>LátG:</strong>
@@ -203,7 +205,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes LátG (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes LátG..."></div>
             
             <strong>Resumen del caso:</strong>
             <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
@@ -235,7 +237,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes EO (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes EO..."></div>
             
             <div class="orador-fila">
                 <strong>LátO:</strong>
@@ -246,7 +248,7 @@
                     <button onclick="cambiarPOI(this, -1)">-</button><span class="poi-valor">0</span><button onclick="cambiarPOI(this, 1)">+</button>
                 </div>
             </div>
-            <div class="apuntes" contenteditable="true" placeholder="Apuntes LátO (Azul)..."></div>
+            <div class="apuntes" contenteditable="true" placeholder="Apuntes LátO..."></div>
             
             <strong>Resumen del caso:</strong>
             <div class="apuntes resumen-verde" contenteditable="true" placeholder="Lo que entendí del discurso..."></div>
@@ -274,22 +276,33 @@
         
         <p style="text-align: center; color: var(--text-muted); font-weight: bold; margin-bottom: 5px;">Mi Call (Arrastra para ordenar):</p>
         <div id="ranking-container" style="max-width: 450px; margin: 0 auto;">
-            <ul id="lista-ranking">
+            <ul id="lista-ranking" class="lista-drag-vertical">
                 <li class="item-ranking" draggable="true" data-equipo="AG"><span class="posicion">1</span> Alta de Gobierno (AG) <span class="drag-handle">☰</span></li>
                 <li class="item-ranking" draggable="true" data-equipo="AO"><span class="posicion">2</span> Alta de Oposición (AO) <span class="drag-handle">☰</span></li>
                 <li class="item-ranking" draggable="true" data-equipo="BG"><span class="posicion">3</span> Baja de Gobierno (BG) <span class="drag-handle">☰</span></li>
                 <li class="item-ranking" draggable="true" data-equipo="BO"><span class="posicion">4</span> Baja de Oposición (BO) <span class="drag-handle">☰</span></li>
             </ul>
-            <button class="btn-color btn-validar" style="background-color: #27ae60; color: white; width: 100%; margin-top: 15px; padding: 12px; font-size: 15px;" onclick="validarCall()">🔍 Validar Call vs Apuntes</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-color btn-validar" style="background-color: #27ae60; color: white; flex: 1; padding: 12px; font-size: 14px;" onclick="validarCall()">🔍 Validar Call</button>
+                <button class="btn-color" style="background-color: #8e44ad; color: white; flex: 1; padding: 12px; font-size: 14px;" onclick="autoOrdenarCall()">🪄 Auto-Ordenar</button>
+            </div>
         </div>
         
-        <p style="color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-top: 30px;"><strong>Call propuesto por otros jueces:</strong></p>
-        <div id="otros-calls-texto" class="apuntes call-box" contenteditable="true" style="line-height: 1.8;">
-            Principal: &gt;&gt;&gt;<br>
-            Panelista 1: &gt;&gt;&gt;<br>
-            Panelista 2: &gt;&gt;&gt;<br>
-            Trainee: &gt;&gt;&gt;
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 30px 0;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <p style="margin:0; color: var(--text-main); font-weight: bold;">Call de otros jueces:</p>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-color" style="background-color: #34495e; color: white; font-size: 12px;" onclick="agregarJuez('panelista')">+ Panelista</button>
+                <button class="btn-color" style="background-color: #7f8c8d; color: white; font-size: 12px;" onclick="agregarJuez('trainee')">+ Trainee</button>
+            </div>
         </div>
+
+        <div id="otros-jueces-container">
+            </div>
+
+        <p style="margin-top:20px; margin-bottom: 5px; color: var(--text-main); font-weight: bold;">Apuntes adicionales / Notas de disenso:</p>
+        <div id="apuntes-libres-footer" class="apuntes call-box" contenteditable="true" placeholder="Escribe aquí razones de disenso, anotaciones rápidas, etc..." style="text-align: left; min-height: 80px; font-weight: normal; font-size: 15px;"></div>
     </footer>
 
     <div id="modal-spk" class="modal-oculto">
@@ -331,6 +344,18 @@
                 <button class="btn-color" style="background-color: #e74c3c; color: white;" onclick="ejecutarLimpieza()">Sí, borrar todo</button>
             </div>
         </div>
+    </div>
+
+    <div id="format-toolbar" class="format-toolbar">
+        <button onmousedown="formatText('bold', event)" title="Negrita"><b>B</b></button>
+        <button onmousedown="formatText('italic', event)" title="Cursiva"><i style="font-family: Georgia, serif;">I</i></button>
+        <button onmousedown="formatText('underline', event)" title="Subrayado"><u>U</u></button>
+        <div class="divisor-toolbar"></div>
+        <button class="color-btn" onmousedown="formatNormalColor(event)" title="Normal (Quitar color)"><div class="color-dot dot-normal"></div></button>
+        <button class="color-btn" onmousedown="formatColor('#3498db', event)" title="Resaltar (Azul)"><div class="color-dot dot-blue"></div></button>
+        <button class="color-btn" onmousedown="formatColor('#27ae60', event)" title="A favor (Verde)"><div class="color-dot dot-green"></div></button>
+        <button class="color-btn" onmousedown="formatColor('#e74c3c', event)" title="En contra (Rojo)"><div class="color-dot dot-red"></div></button>
+        <button class="color-btn" onmousedown="formatColor('#7f8c8d', event)" title="Observación (Gris)"><div class="color-dot dot-gray"></div></button>
     </div>
 
     <div id="toast-container"></div>

@@ -106,36 +106,84 @@ document.execCommand('defaultParagraphSeparator', false, 'div');
 function cambiarFormato(formato) {
     document.body.classList.remove('formato-bp', 'formato-altas', 'formato-masters');
     document.body.classList.add('formato-' + formato);
-    const otrosCalls = document.getElementById('otros-calls-texto');
-    if (formato === 'bp') {
-        if (otrosCalls.innerText.includes('Principal: >')) {
-            otrosCalls.innerHTML = 'Principal: &gt;&gt;&gt;<br>Panelista 1: &gt;&gt;&gt;<br>Panelista 2: &gt;&gt;&gt;<br>Trainee: &gt;&gt;&gt;';
-        }
-        mostrarToast('🏆 Formato cambiado a BP', 'success');
+    
+    if (formato === 'masters') {
+        mostrarToast('👑 Formato cambiado a Másters', 'success');
     } else if (formato === 'altas') { 
-        if (otrosCalls.innerText.includes('Principal: >>>')) {
-            otrosCalls.innerHTML = 'Principal: &gt;<br>Panelista 1: &gt;<br>Panelista 2: &gt;<br>Trainee: &gt;';
-        }
         mostrarToast('⚔️ Formato cambiado a Altas', 'success');
     } else {
-        mostrarToast('👑 Formato cambiado a Másters', 'success');
+        mostrarToast('🏆 Formato cambiado a BP', 'success');
     }
 }
 
-document.addEventListener('input', function(e) {
+// =========================================
+// SISTEMA DE EDICIÓN RICH-TEXT (NOTION STYLE)
+// =========================================
+document.addEventListener('paste', function(e) {
     if (e.target.classList && e.target.classList.contains('apuntes') && 
-        !e.target.classList.contains('resumen-verde') && !e.target.classList.contains('call-box')) {
-        let sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        let node = sel.anchorNode;
-        let block = node.nodeType === 3 ? node.parentNode : node;
-        let text = block.textContent.trim();
-        if (text.startsWith('+')) { block.style.color = '#27ae60'; } 
-        else if (text.startsWith('-')) { block.style.color = '#e74c3c'; } 
-        else if (text.startsWith('*')) { block.style.color = '#7f8c8d'; } 
-        else { block.style.color = '#3498db'; }
+        !e.target.classList.contains('resumen-verde') && 
+        !e.target.classList.contains('call-box') && 
+        !e.target.classList.contains('caja-eva')) {
+        e.preventDefault();
+        let text = (e.clipboardData || window.clipboardData).getData('text/plain');
+        document.execCommand('insertText', false, text);
     }
 });
+
+document.addEventListener('selectionchange', () => {
+    const toolbar = document.getElementById('format-toolbar');
+    if (!toolbar) return;
+    
+    const selection = window.getSelection();
+    
+    if (selection.rangeCount > 0 && !selection.isCollapsed) {
+        const range = selection.getRangeAt(0);
+        const container = range.commonAncestorContainer;
+        
+        const isInsideApuntes = container.nodeType === 3 ? 
+            container.parentNode.closest('.apuntes') : 
+            container.closest('.apuntes');
+            
+        if (isInsideApuntes && !isInsideApuntes.classList.contains('resumen-verde')) {
+            const rect = range.getBoundingClientRect();
+            const scrollY = window.scrollY || window.pageYOffset;
+            const scrollX = window.scrollX || window.pageXOffset;
+            
+            let topPos = rect.top + scrollY - 45;
+            let leftPos = rect.left + scrollX + (rect.width / 2) - (toolbar.offsetWidth / 2);
+            
+            if (leftPos < 10) leftPos = 10;
+            if (leftPos + toolbar.offsetWidth > window.innerWidth - 10) {
+                leftPos = window.innerWidth - toolbar.offsetWidth - 10;
+            }
+            
+            toolbar.style.top = `${topPos}px`; 
+            toolbar.style.left = `${leftPos}px`;
+            
+            toolbar.classList.add('visible');
+            return;
+        }
+    }
+    
+    toolbar.classList.remove('visible');
+});
+
+function formatText(command, e) {
+    e.preventDefault(); 
+    document.execCommand(command, false, null);
+}
+
+function formatColor(color, e) {
+    e.preventDefault();
+    document.execCommand('foreColor', false, color);
+}
+
+function formatNormalColor(e) {
+    e.preventDefault();
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const defaultColor = isDark ? '#f8fafc' : '#1e293b'; 
+    document.execCommand('foreColor', false, defaultColor);
+}
 
 function togglePanel(id) { document.getElementById(id).classList.toggle('oculto'); }
 function toggleCaja(tipo) { document.body.classList.toggle('hide-' + tipo); }
@@ -171,7 +219,6 @@ function cambiarModoTimer() {
     if (modo === 'orador') modoTexto = 'Orador (7:15m)';
     else if (modo === 'deliberacion') modoTexto = 'Deliberación (20m)';
     else if (modo === 'feedback') modoTexto = 'Feedback (15m)';
-    
     mostrarToast(`⏱️ Modo cambiado a: ${modoTexto}`, 'info');
 }
 
@@ -226,7 +273,7 @@ function toggleTimer() {
                 if (segundos === 420) tocarCampana(2);      
                 if (segundos === 435) tocarCampana(4); 
             } else if (modo === 'feedback') {
-                if (segundos === 900) tocarCampana(3); // Suena 3 veces a los 15 minutos
+                if (segundos === 900) tocarCampana(3); 
             }
         }, 1000);
         btn.innerHTML = "⏸ Pause";
@@ -246,41 +293,117 @@ function resetTimer() {
 }
 
 // =========================================
-// NUEVO: SISTEMA DRAG AND DROP (CALL)
+// SISTEMA DE JUECES DINÁMICOS Y AUTO-ORDEN
 // =========================================
-function inicializarDragAndDrop() {
-    const lista = document.getElementById('lista-ranking');
-    if (!lista) return;
-    const items = lista.querySelectorAll('.item-ranking');
+let contadorPanelistas = 1;
 
-    items.forEach(item => {
-        item.addEventListener('dragstart', () => {
-            setTimeout(() => item.classList.add('dragging'), 0);
-        });
+function agregarJuez(tipo) {
+    const container = document.getElementById('otros-jueces-container');
+    const nombre = tipo === 'panelista' ? `Panelista ${contadorPanelistas++}` : 'Trainee';
 
-        item.addEventListener('dragend', () => {
-            item.classList.remove('dragging');
-            actualizarPosicionesRanking();
-        });
+    const html = `
+        <div class="juez-container">
+            <div class="juez-header">
+                <span contenteditable="true" class="juez-nombre">${nombre}</span>
+                <button onclick="this.parentElement.parentElement.remove(); guardarDatos();" class="btn-eliminar-juez" title="Eliminar Juez">✖</button>
+            </div>
+            <ul class="lista-ranking-horizontal">
+                <li class="item-ranking-hz" draggable="true">1. AG</li>
+                <li class="item-ranking-hz" draggable="true">2. AO</li>
+                <li class="item-ranking-hz" draggable="true">3. BG</li>
+                <li class="item-ranking-hz" draggable="true">4. BO</li>
+            </ul>
+        </div>
+    `;
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    container.appendChild(div.firstElementChild);
+    inicializarDragAndDrop(); 
+    guardarDatos();
+}
+
+function autoOrdenarCall() {
+    const equipos = { 'AG': 0, 'AO': 0, 'BG': 0, 'BO': 0 };
+    const flechasActivas = document.querySelectorAll('.flecha-btn.activa');
+
+    flechasActivas.forEach(btn => {
+        const partes = btn.id.split('-');
+        const ganador = partes[1];
+        if (equipos[ganador] !== undefined) {
+            equipos[ganador]++;
+        }
     });
 
-    lista.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        const afterElement = obtenerElementoPosterior(lista, e.clientY);
-        const draggable = document.querySelector('.dragging');
-        if (afterElement == null) {
-            lista.appendChild(draggable);
-        } else {
-            lista.insertBefore(draggable, afterElement);
-        }
+    const sortedTeams = Object.keys(equipos).sort((a, b) => equipos[b] - equipos[a]);
+    const lista = document.getElementById('lista-ranking');
+    const items = Array.from(lista.querySelectorAll('.item-ranking'));
+
+    sortedTeams.forEach(equipo => {
+        const item = items.find(el => el.getAttribute('data-equipo') === equipo);
+        if (item) lista.appendChild(item); 
+    });
+
+    actualizarPosicionesRanking();
+    mostrarToast('🪄 Call ordenado automáticamente según tus flechas', 'success');
+}
+
+// =========================================
+// DRAG AND DROP (Vertical y Horizontal)
+// =========================================
+function inicializarDragAndDrop() {
+    const listas = document.querySelectorAll('#lista-ranking, .lista-ranking-horizontal');
+
+    listas.forEach(lista => {
+        const items = lista.querySelectorAll('.item-ranking, .item-ranking-hz');
+
+        items.forEach(item => {
+            if(item.isDragInitialized) return;
+            item.isDragInitialized = true;
+
+            item.addEventListener('dragstart', () => {
+                setTimeout(() => item.classList.add('dragging'), 0);
+            });
+
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                actualizarPosicionesRankingContext(lista);
+                guardarDatos();
+            });
+        });
+
+        if(lista.isDragInitialized) return;
+        lista.isDragInitialized = true;
+
+        lista.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            if(!draggable) return;
+
+            const isListHz = lista.classList.contains('lista-ranking-horizontal');
+            const isItemHz = draggable.classList.contains('item-ranking-hz');
+            if (isListHz !== isItemHz) return;
+
+            const afterElement = obtenerElementoPosterior(lista, isListHz ? e.clientX : e.clientY, isListHz);
+
+            if (afterElement == null) {
+                lista.appendChild(draggable);
+            } else {
+                lista.insertBefore(draggable, afterElement);
+            }
+        });
     });
 }
 
-function obtenerElementoPosterior(contenedor, y) {
-    const elementosDraggables = [...contenedor.querySelectorAll('.item-ranking:not(.dragging)')];
-    return elementosDraggables.reduce((closest, child) => {
+function obtenerElementoPosterior(contenedor, coord, isHorizontal) {
+    const claseItems = isHorizontal ? '.item-ranking-hz:not(.dragging)' : '.item-ranking:not(.dragging)';
+    const draggables = [...contenedor.querySelectorAll(claseItems)];
+    
+    return draggables.reduce((closest, child) => {
         const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
+        const offset = isHorizontal ? 
+            coord - box.left - box.width / 2 : 
+            coord - box.top - box.height / 2;
+            
         if (offset < 0 && offset > closest.offset) {
             return { offset: offset, element: child };
         } else {
@@ -289,15 +412,28 @@ function obtenerElementoPosterior(contenedor, y) {
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-function actualizarPosicionesRanking() {
-    const items = document.querySelectorAll('.item-ranking');
+function actualizarPosicionesRankingContext(lista) {
+    const isHorizontal = lista.classList.contains('lista-ranking-horizontal');
+    const items = lista.querySelectorAll(':scope > li');
+    
     items.forEach((item, index) => {
-        item.querySelector('.posicion').innerText = index + 1;
+        if (isHorizontal) {
+            const textoLimpio = item.innerText.replace(/^\d+\.\s*/, '');
+            item.innerText = `${index + 1}. ${textoLimpio}`;
+        } else {
+            const posicionSpan = item.querySelector('.posicion');
+            if (posicionSpan) posicionSpan.innerText = index + 1;
+        }
     });
 }
 
+function actualizarPosicionesRanking() {
+    const listaPrincipal = document.getElementById('lista-ranking');
+    if(listaPrincipal) actualizarPosicionesRankingContext(listaPrincipal);
+}
+
 function validarCall() {
-    const items = document.querySelectorAll('.item-ranking');
+    const items = document.querySelectorAll('#lista-ranking .item-ranking');
     const ranking = Array.from(items).map(item => item.getAttribute('data-equipo'));
     const flechasActivas = document.querySelectorAll('.flecha-btn.activa');
     let hayChoques = false;
@@ -317,7 +453,7 @@ function validarCall() {
     });
 
     if(!hayChoques) {
-        mostrarToast('✅ Call validado: Tu ranking coincide perfecto con tus apuntes.', 'success');
+        mostrarToast('✅ Call validado: Tu ranking coincide perfecto con tus flechas.', 'success');
     }
 }
 
@@ -339,12 +475,10 @@ function generarMatriz() {
     bancadas.forEach((bancada, index) => {
         if (window.getComputedStyle(bancada).display === 'none') return;
         
-        // SUMATORIA INTELIGENTE DE SPK
         let totalSPK = 0;
         const spkInputs = bancada.querySelectorAll('.spk-orador');
         spkInputs.forEach(input => {
             const fila = input.closest('.orador-fila');
-            // Solo suma si la fila del orador está visible (para omitir 3er orador si no es Másters)
             if (window.getComputedStyle(fila).display !== 'none') {
                 const val = parseInt(input.innerText.trim());
                 if (!isNaN(val)) {
@@ -353,7 +487,6 @@ function generarMatriz() {
             }
         });
 
-        // Etiqueta visual para el total de SPK
         const totalSPKHtml = totalSPK > 0 
             ? `<span style="float: right; background-color: #8e44ad; color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; box-shadow: var(--shadow-sm);">⭐ SPK Total: ${totalSPK}</span>` 
             : '';
@@ -429,17 +562,23 @@ window.onclick = function(event) {
 }
 
 // =========================================
-// MAGIA DE AUTOGUARDADO
+// MAGIA DE AUTOGUARDADO (AMPLIADO)
 // =========================================
 function guardarDatos() {
     const backup = {};
-    document.querySelectorAll('[contenteditable="true"]').forEach((elemento, index) => { backup['texto_' + index] = elemento.innerHTML; });
+    document.querySelectorAll('[contenteditable="true"]:not(.juez-nombre)').forEach((elemento, index) => { backup['texto_' + index] = elemento.innerHTML; });
     document.querySelectorAll('.flecha-btn').forEach((elemento, index) => { backup['flecha_' + index] = elemento.classList.contains('activa'); });
     document.querySelectorAll('.poi-valor').forEach((elemento, index) => { backup['poi_' + index] = elemento.innerText; });
     backup['formato'] = document.getElementById('selector-formato').value;
     
     const rankingList = document.getElementById('lista-ranking');
     if(rankingList) backup['ranking'] = rankingList.innerHTML;
+
+    const otrosJueces = document.getElementById('otros-jueces-container');
+    if(otrosJueces) backup['otros_jueces'] = otrosJueces.innerHTML;
+    
+    const apuntesLibres = document.getElementById('apuntes-libres-footer');
+    if(apuntesLibres) backup['apuntes_libres'] = apuntesLibres.innerHTML;
     
     localStorage.setItem('cmude_backup', JSON.stringify(backup));
 }
@@ -450,7 +589,7 @@ function cargarDatos() {
         const backup = JSON.parse(guardado);
         let hayDatosRestaurados = false;
         
-        document.querySelectorAll('[contenteditable="true"]').forEach((elemento, index) => {
+        document.querySelectorAll('[contenteditable="true"]:not(.juez-nombre)').forEach((elemento, index) => {
             if (backup['texto_' + index] !== undefined && backup['texto_' + index] !== '') {
                 elemento.innerHTML = backup['texto_' + index];
                 hayDatosRestaurados = true;
@@ -458,6 +597,7 @@ function cargarDatos() {
         });
         document.querySelectorAll('.flecha-btn').forEach((elemento, index) => { if (backup['flecha_' + index]) elemento.classList.add('activa'); });
         document.querySelectorAll('.poi-valor').forEach((elemento, index) => { if (backup['poi_' + index] !== undefined) elemento.innerText = backup['poi_' + index]; });
+        
         if (backup['formato']) {
             document.getElementById('selector-formato').value = backup['formato'];
             cambiarFormato(backup['formato']);
@@ -466,6 +606,18 @@ function cargarDatos() {
         if (backup['ranking']) {
             const rankingList = document.getElementById('lista-ranking');
             if(rankingList) rankingList.innerHTML = backup['ranking'];
+        }
+
+        if (backup['otros_jueces']) {
+            const otrosJueces = document.getElementById('otros-jueces-container');
+            if(otrosJueces) otrosJueces.innerHTML = backup['otros_jueces'];
+            const cantPanelistas = document.querySelectorAll('.juez-nombre').length;
+            if(cantPanelistas > 0) contadorPanelistas = cantPanelistas + 1;
+        }
+
+        if (backup['apuntes_libres']) {
+            const apuntesLibres = document.getElementById('apuntes-libres-footer');
+            if(apuntesLibres) apuntesLibres.innerHTML = backup['apuntes_libres'];
         }
 
         if(hayDatosRestaurados) {
@@ -486,31 +638,3 @@ function ejecutarLimpieza() {
 
 window.onload = cargarDatos;
 let intervaloGuardado = setInterval(guardarDatos, 2000);
-
-// =========================================
-// LÓGICA DE INSTALACIÓN PWA (BOTÓN PERSONALIZADO)
-// =========================================
-let deferredPrompt;
-const btnInstalar = document.getElementById('btn-instalar');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (btnInstalar) {
-        btnInstalar.classList.remove('oculto');
-    }
-});
-
-if (btnInstalar) {
-    btnInstalar.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                console.log('El usuario instaló la App');
-                btnInstalar.classList.add('oculto');
-            }
-            deferredPrompt = null;
-        }
-    });
-}
